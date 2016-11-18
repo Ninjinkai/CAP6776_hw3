@@ -10,14 +10,16 @@ clustering_result_path = './clustering_result.txt'
 data_label = []
 clustering_result = []
 
-# Matrix to hold T(Ck, Lm)).
-t_matrix = numpy.zeros((10, 10), dtype=numpy.int)
+# Sets to verify count of labels and count of clusters match.
+data_label_set = set()
+clustering_result_set = set()
 
 # Read data label file.
 try:
     with open(data_label_path, 'r') as data_label_input:
         for current_label in data_label_input:
             data_label.append(int(current_label.split(' ')[0]))
+            data_label_set.add(int(current_label.split(' ')[0]))
 except:
     error_message = 'File + ' + data_label_path + ' not found.'
     exit(error_message)
@@ -28,10 +30,18 @@ try:
     with open(clustering_result_path, 'r') as clustering_result_input:
         for current_result in clustering_result_input:
             clustering_result.append(int(current_result.rstrip('\n')))
+            clustering_result_set.add(int(current_result.rstrip('\n')))
 except:
     error_message = 'File + ' + clustering_result_path + ' not found.'
     exit(error_message)
 clustering_result_input.close()
+
+# Verify that count of labels matches count of clusters.
+if len(data_label_set) == len(clustering_result_set):
+    label_count = len(data_label_set)
+else:
+    print("The number of data labels is not the same as the number of clusters.")
+    quit()
 
 # Set variables for calculation:
 # Accuracy = max (sum{Ck, Lm} T(Ck, Lm)) /n
@@ -39,23 +49,15 @@ clustering_result_input.close()
 # and T(Ck, Lm) is the number of data points that belong to class m and are
 # assigned to cluster k.
 
+# Number of data points.
 n = len(data_label)
 print(n)
 
+# Matrix to hold T(Ck, Lm)).
+t_matrix = numpy.zeros((label_count, label_count), dtype=numpy.int)
+
+# Generate T(Ck, Lm).
 for index in range(0, n):
     t_matrix[clustering_result[index] - 1][data_label[index] - 1] += 1
 
 print(t_matrix)
-
-maximum = 0
-diag_sum = 0
-
-for i in range(0, 10):
-    for j in range(0, 10):
-        diag_sum += t_matrix[j][(j + i) % 10]
-    print(diag_sum)
-    if diag_sum > maximum:
-        maximum = diag_sum
-    diag_sum = 0
-print(maximum)
-print(maximum/n)
